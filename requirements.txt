@@ -1,0 +1,10 @@
+tiktoken
+langchain
+langchain_core
+openai
+fastapi
+uvicorn
+python-dotenv
+APScheduler
+python-jose
+psycopg2
