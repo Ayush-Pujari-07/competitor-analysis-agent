@@ -1,19 +1,4 @@
-# # To run the example below, ensure the environment variable OPENAI_API_KEY is set
-# import os
-
-# from llm_manager.openai_manager import openai_manager
-# from langsmith.run_trees import RunTree
-
-# ### OPTION 1: Use RunTree API (more explicit) ###
-# # This can be a user input to your app
 # question = "Can you summarize this morning's meetings?"
-
-# # Create a top-level run
-# pipeline = RunTree(
-#     name="Chat Pipeline Run Tree",
-#     run_type="chain",
-#     inputs={"question": question}
-# )
 
 # # This can be retrieved in a retrieval step
 # context = "During this morning's meeting, we solved all world conflict."
@@ -41,12 +26,18 @@
 # pipeline.end(outputs={"answer": chat_completion.choices[0].message.content})
 # pipeline.post()
 
+from pydantic import BaseModel
 from fastapi import requests, FastAPI, responses
-from databse.mongo_init import mongo_client
-from llm_manager.openai_manager import openai_manager
 
+# from databse.mongo_init import mongo_client
+from ai_agent.agent import chat_pipeline
 
 app = FastAPI()
+
+
+class ResearchInput(BaseModel):
+    query: str
+    user_id: str
 
 
 @app.get("/")
@@ -54,11 +45,14 @@ async def root():
     return responses.JSONResponse(content={"message": "Hello World"})
 
 
-@app.get("/mongo")
-def mongo():
-    return responses.JSONResponse(content={"message": f"{mongo_client.client}"})
+# @app.get("/mongo")
+# def mongo():
+#     return responses.JSONResponse(content={"message": f"{mongo_client.client}"})
 
 
 @app.get("/openai")
-def openai():
-    return responses.JSONResponse(content={"message": f'{openai_manager}'})
+def openai(data: ResearchInput, request: requests.Request):
+    # Create a top-level run
+    response = chat_pipeline(data.query)
+
+    return responses.JSONResponse(content={"message": f'{response}'})

@@ -2,11 +2,16 @@ import os
 import sys
 import requests
 
-from competitor_analysis_agent.logger import logger
+# from competitor_analysis_agent.logger import logger
 from competitor_analysis_agent.exception import CustomException
+from llm_manager.openai_manager import openai_manager
+from openai import OpenAI
 
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv, find_dotenv
+
+from langsmith import traceable
+from langsmith.wrappers import wrap_openai
 
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
@@ -25,7 +30,7 @@ RESULTS_PER_QUESTION = 3
 ddg_search = DuckDuckGoSearchAPIWrapper()
 
 
-def web_search(query: str, num_results: int):
+def web_search(query: str, num_results: int = RESULTS_PER_QUESTION):
     """
     Perform a web search using the specified query and return a list of links from the search results.
     """
@@ -54,26 +59,59 @@ def scrape_text(url: str):
 
         return scrape_data
     except Exception as e:
-        logger.error(f"An error occurred: {CustomException(e,sys)}")
+        # logger.error(f"An error occurred: {CustomException(e,sys)}")
+        print(e)
 
 
-def agent_invoke(user_query: str, url):
-    """
-    This function takes in a user query and a URL, creates a chat prompt template, scrapes text content from the URL, and then invokes a chain of operations using the user query and the scraped page content.
-    """
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a researcher and your task is to analyze the  above text, generate a detailed competatitor analysis report providing product and service insights along with tables and graphs in html format inside a json format. if the question is not clear, just respond with None"),
-        ("user", "Question: {question}\nContext: {context}")
-    ])
+# def agent_invoke(user_query: str, url):
+#     """
+#     This function takes in a user query and a URL, creates a chat prompt template, scrapes text content from the URL, and then invokes a chain of operations using the user query and the scraped page content.
+#     """
+#     prompt = ChatPromptTemplate.from_messages([
+#         ("system", "You are a researcher and your task is to analyze the  above text, generate a detailed competatitor analysis report providing product and service insights along with tables and graphs in html format inside a json format.\n example:. if the question is not clear, just respond with None"),
+#         ("user", "Question: {question}\nContext: {context}")
+#     ])
 
-    page_content = scrape_text(url)[:10000]
+#     page_content = scrape_text(url)[:10000]
 
-    chain = prompt | ChatOpenAI(openai_api_key=os.environ.get(
-        "OPENAI_API_KEY"), model_name="gpt-3.5-turbo-0125") | StrOutputParser()
+#     chain = prompt | ChatOpenAI(openai_api_key=os.environ.get(
+#         "OPENAI_API_KEY"), model_name="gpt-3.5-turbo-0125") | StrOutputParser()
 
-    chain.invoke(
-        {
-            "question": user_query,
-            "context": page_content,
-        }
-    )
+#     chain.invoke(
+#         {
+#             "question": user_query,
+#             "context": page_content,
+#         }
+#     )
+
+@traceable(name="Chat Pipeline Traceable")
+def chat_pipeline(query: str):
+    try:
+        print(query)
+        client = wrap_openai(openai_manager)
+        print("client: ",client)
+        data = web_search(query, 3)
+        print("data",data)
+        context = "".join([scrape_text(url)[:3500] for url in data])
+        print("context",context)
+
+        template = """
+    As a researcher, your objective is to analyze the given Context below. 
+    Context: {}\n
+    Generate a comprehensive competitor analysis report, presenting insights into products and services. The report should include tables and graphs formatted in HTML, and the entire output should be enclosed within a JSON format with the following structure: 
+
+    `{"response": "True", "report_data": "html report data"}`
+
+    Example: If the question is unclear, respond with 'None'.""".format(context=context)
+        # logger.info(f"The data template is: {template}")
+        print("template: ",template)
+        messages = [
+            {"role": "system", "content": template},
+            {"role": "user", "content": f"Question: {query}"}
+        ]
+        chat_completion = client.generate_text(messages=messages)
+        print(chat_completion.choices[0].message.content)
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        # logger.error(f"An error occurred: {CustomException(e,sys)}")
+        print(e)
