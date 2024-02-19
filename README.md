@@ -38,10 +38,9 @@ Competitive Analysis Agent is a FastAPI-based agent designed for creating compet
 ### Usage
 
 Run the FastAPI application:
-
-    ```bash
-    uvicorn your_app_name:app --reload
-    ```
+```bash
+uvicorn your_app_name:app --reload
+```
 Visit http://127.0.0.1:8000 in your browser to interact with the API.
 
 ## API Endpoints
