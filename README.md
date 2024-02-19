@@ -53,14 +53,19 @@ Visit http://127.0.0.1:8000 in your browser to interact with the API.
     curl http://127.0.0.1:8000/
     ```
 
-## 2. POST /openai
+## 2. GET /openai
 - **Description:** Perform a language processing task and generate a competitive analysis report in PDF format.
 Parameters:
 query: String - User query
 user_id: String - User identifier
 - **Example:**
     ```bash
-        curl -X POST -H "Content-Type: application/json" -d '{"query": "example query", "user_id": "123"}' http://127.0.0.1:8000/openai
+    curl --location --request GET 'http://localhost:8000/openai?Api-Key=<Your-api-key>' \
+    --header 'Content-Type: application/json' \
+    --data '{
+        "query": "Apple Iphone competators products",
+        "user_id": "1"
+    }'
     ```
 
 # Contribution
