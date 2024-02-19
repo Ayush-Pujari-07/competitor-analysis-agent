@@ -59,7 +59,7 @@ async def openai(data: ResearchInput, request: requests.Request, user: str = Dep
         with open(output_filename, "wb") as out_file:
             pisa.CreatePDF(eval(response)['report_data'], dest=out_file)
         
-        result_data = {"key": "value", "another_key": "another_value"}
+        result_data = eval(response)
 
         # return responses.JSONResponse(content={"message": f"Report pdf created at {output_filename}"})
         return templates.TemplateResponse("result.html", {"request": request, "result_data": result_data})
