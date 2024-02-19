@@ -7,6 +7,16 @@
 </head>
 <body>
     <h1>Result</h1>
-    <p>{{ result_message }}</p>
+    {% if result_data %}
+        <ul>
+            {% for key, value in result_data.items() %}
+                <li><strong>{{ key }}:</strong> {{ value }}</li>
+            {% endfor %}
+        </ul>
+    {% elif error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% else %}
+        <p>No result or error message available.</p>
+    {% endif %}
 </body>
 </html>
