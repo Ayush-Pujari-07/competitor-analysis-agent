@@ -42,7 +42,7 @@
 # pipeline.post()
 
 from fastapi import requests, FastAPI, responses
-# from databse.mongo_init import mongo_client
+from databse.mongo_init import mongo_client
 from llm_manager.openai_manager import openai_manager
 
 
@@ -54,11 +54,11 @@ async def root():
     return responses.JSONResponse(content={"message": "Hello World"})
 
 
-# @app.get("/mongo")
-# def mongo():
-#     return responses.JSONResponse(content={"message": mongo_client})
+@app.get("/mongo")
+def mongo():
+    return responses.JSONResponse(content={"message": f"{mongo_client.client}"})
 
 
 @app.get("/openai")
 def openai():
-    return responses.JSONResponse(content={"message": openai_manager})
+    return responses.JSONResponse(content={"message": f'{openai_manager}'})
