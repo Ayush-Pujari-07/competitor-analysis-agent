@@ -1,42 +1,11 @@
 import os
-import boto3
 import logging
 
-from logging import Handler
 from contextlib import suppress
 from datetime import datetime, timedelta
-from botocore.exceptions import ClientError
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
-
-
-class CloudWatchLogsHandler(Handler):
-    def __init__(self, log_group_name, log_stream_name):
-        """
-        Initialize the CloudWatch Logs handler.
-        """
-        super().__init__()
-        self.log_group_name = log_group_name
-        self.log_stream_name = log_stream_name
-        self.client = boto3.client('logs', region_name=os.getenv("AWS_REGION"), aws_access_key_id=os.getenv(
-            "AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"))
-
-        with suppress(ClientError) as e:
-            self.client.create_log_stream(
-                logGroupName=self.log_group_name, logStreamName=self.log_stream_name)
-
-    def emit(self, record):
-        """
-        Emit the log message to CloudWatch Logs.
-        """
-        try:
-            log_event = {'timestamp': int(
-                record.created * 1000), 'message': self.format(record)}
-            self.client.put_log_events(
-                logGroupName=self.log_group_name, logStreamName=self.log_stream_name, logEvents=[log_event])
-        except Exception as e:
-            self.handleError(record)
 
 
 def create_logs():
@@ -55,15 +24,9 @@ def create_logs():
     os.makedirs(logs_path, exist_ok=True)
 
     LOG_FILE_PATH = os.path.join(logs_path, LOG_FILE)
-
+    print(LOG_FILE_PATH)
     logging.basicConfig(filename=LOG_FILE_PATH,
                         format="[%(asctime)s] %(lineno)d - %(filename)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s", level=logging.INFO)
-
-    cloudwatch_handler = CloudWatchLogsHandler(
-        os.environ.get("AWS_CLOUDWATCH_GROUP_NAME"), LOG_FILE_FOLDER)
-
-    # Add the cloudwatch handler to the logger
-    logger.addHandler(cloudwatch_handler)
 
     # Set the log level
     logger.setLevel(logging.INFO)
