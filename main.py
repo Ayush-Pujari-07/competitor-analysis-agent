@@ -3,7 +3,8 @@ import sys
 
 from xhtml2pdf import pisa
 from pydantic import BaseModel
-from fastapi import requests, FastAPI, responses, Depends
+from fastapi import requests, FastAPI, responses, Depends, Form
+from fastapi.templating import Jinja2Templates
 
 from ai_agent.agent import chat_pipeline
 from databse.mongo_init import mongo_client
@@ -21,15 +22,18 @@ app = FastAPI(
 # export LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 # export LANGCHAIN_API_KEY="YOUR_LANGCHAIN_API_KEY"
 
+templates = Jinja2Templates(directory="templates")
 
 class ResearchInput(BaseModel):
     query: str
     user_id: str
 
 
-@app.get("/")
-async def root():
-    return responses.JSONResponse(content={"message": "Hello World"})
+@app.get("/", response_class=responses.HTMLResponse)
+async def root(request: requests.Request):
+    # return responses.JSONResponse(content={"message": "Hello World"})
+    return templates.TemplateResponse("index.html", {"request": request})
+
 
 
 @app.post("/openai")
