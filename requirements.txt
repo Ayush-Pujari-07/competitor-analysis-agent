@@ -10,3 +10,5 @@ python-jose
 psycopg2
 pymongo
 pymongo[srv]
+xhtml2pdf
+python-jose

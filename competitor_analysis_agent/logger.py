@@ -11,8 +11,6 @@ load_dotenv(find_dotenv())
 def create_logs():
     """
     Create logs for the application.
-
-    This function sets up the logging configuration for the application. It creates a logger object and configures it to write logs to both a local log file and AWS CloudWatch. The logs are stored in a directory named after the current date, and the log file is named after the current time. The log file path is returned.
     """
     logger = logging.getLogger(__name__)
     now = datetime.now()
@@ -39,8 +37,6 @@ def create_logs():
 def cleanup_old_logs():
     """
     Deletes old log files and folders that are more than 4 days old.
-
-    This function iterates over the directories in the 'logs' folder and checks if each folder represents a valid date. If a folder is older than 7 days, it deletes all the files inside the folder and then deletes the folder itself.
     """
     logs_directory = os.path.join(os.getcwd(), 'logs')
     for folder_name in os.listdir(logs_directory):

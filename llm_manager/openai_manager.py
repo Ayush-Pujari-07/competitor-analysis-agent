@@ -1,8 +1,9 @@
 import sys
 
 from openai import OpenAI
+from langsmith import wrappers
 
-# from competitor_analysis_agent.logger import logger
+from competitor_analysis_agent.logger import logger
 from competitor_analysis_agent.constants import OPENAI_API_KEY, GPT_MODEL
 from competitor_analysis_agent.exception import CustomException
 
@@ -21,10 +22,10 @@ class OpenAIManager:
         Initialize OpenAI API key and model.
         """
         if not self._initialized:
-            self.client = OpenAI(
+            self.client = wrappers.wrap_openai(OpenAI(
                 api_key=OPENAI_API_KEY,
                 max_retries=3
-            )
+            ))
             self._initialized = True
         return self.client
     
@@ -47,5 +48,4 @@ try:
     openai_manager = OpenAIManager()
     openai_manager.initialize_openai()
 except Exception as e:
-    # logger.error(f"An error occurred: {CustomException(e,sys)}")
-    print(e)
+    logger.error(f"An error occurred: {CustomException(e,sys)}")
