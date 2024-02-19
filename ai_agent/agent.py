@@ -2,9 +2,8 @@ import os
 import sys
 import requests
 
-# from competitor_analysis_agent.logger import logger
-# from competitor_analysis_agent.exception import CustomException
-
+from competitor_analysis_agent.logger import logger
+from competitor_analysis_agent.exception import CustomException
 
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv, find_dotenv
@@ -27,11 +26,17 @@ ddg_search = DuckDuckGoSearchAPIWrapper()
 
 
 def web_search(query: str, num_results: int):
+    """
+    Perform a web search using the specified query and return a list of links from the search results.
+    """
     results = ddg_search.run(query)
     return [r['link'] for r in results]
 
 
 def scrape_text(url: str):
+    """
+    A function to scrape text from a given URL.
+    """
     try:
         response = requests.get(
             url=url
@@ -49,11 +54,13 @@ def scrape_text(url: str):
 
         return scrape_data
     except Exception as e:
-        # logger.error(f"An error occurred: {CustomException(e,sys)}")
-        print(e)
+        logger.error(f"An error occurred: {CustomException(e,sys)}")
 
 
 def agent_invoke(user_query: str, url):
+    """
+    This function takes in a user query and a URL, creates a chat prompt template, scrapes text content from the URL, and then invokes a chain of operations using the user query and the scraped page content.
+    """
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are a researcher and your task is to analyze the  above text, generate a detailed competatitor analysis report providing product and service insights along with tables and graphs in html format inside a json format. if the question is not clear, just respond with None"),
         ("user", "Question: {question}\nContext: {context}")
