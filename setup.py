@@ -18,7 +18,7 @@ def get_requirements(file_path: str) -> List[str]:
     return requirements  
 
 setup(
-    name='LMS_GPT',
+    name='competitor-analysis-agent',
     version='0.0.1',
     author='ayush-pujari-07',
     author_email='ayush08.pujari@gmail.com',
