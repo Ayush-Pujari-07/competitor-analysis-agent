@@ -26,6 +26,7 @@ class OpenAIManager:
                 max_retries=3
             )
             self._initialized = True
+        return self.client
     
     def generate_text(self, messages):
         if not self._initialized:

@@ -35,7 +35,8 @@ def web_search(query: str, num_results: int = RESULTS_PER_QUESTION):
     Perform a web search using the specified query and return a list of links from the search results.
     """
     results = ddg_search.run(query)
-    return [r['link'] for r in results]
+    print(results)
+    return results
 
 
 def scrape_text(url: str):
@@ -88,30 +89,35 @@ def scrape_text(url: str):
 def chat_pipeline(query: str):
     try:
         print(query)
-        client = wrap_openai(openai_manager)
+        client = wrap_openai(openai_manager.initialize_openai())
         print("client: ",client)
-        data = web_search(query, 3)
+        data = web_search(query)
         print("data",data)
-        context = "".join([scrape_text(url)[:3500] for url in data])
+        # context = "".join([scrape_text(url)[:3500] for url in data])
+        context = data
         print("context",context)
 
-        template = """
-    As a researcher, your objective is to analyze the given Context below. 
-    Context: {}\n
+        template = f"As a researcher, your objective is to analyze the given Context below. Context: {context}\n"+"""
     Generate a comprehensive competitor analysis report, presenting insights into products and services. The report should include tables and graphs formatted in HTML, and the entire output should be enclosed within a JSON format with the following structure: 
 
     `{"response": "True", "report_data": "html report data"}`
 
-    Example: If the question is unclear, respond with 'None'.""".format(context=context)
+    Example: If the question is unclear, respond with 'None'."""
         # logger.info(f"The data template is: {template}")
         print("template: ",template)
         messages = [
             {"role": "system", "content": template},
             {"role": "user", "content": f"Question: {query}"}
         ]
-        chat_completion = client.generate_text(messages=messages)
+        chat_completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=1.0,
+            top_p=1
+        )
         print(chat_completion.choices[0].message.content)
         return chat_completion.choices[0].message.content
     except Exception as e:
         # logger.error(f"An error occurred: {CustomException(e,sys)}")
-        print(e)
+        print(CustomException(e,sys))
