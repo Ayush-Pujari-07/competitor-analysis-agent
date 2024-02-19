@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from ai_agent.agent import chat_pipeline
 from databse.mongo_init import mongo_client
+from competitor_analysis_agent.constants import API_KEY
 from competitor_analysis_agent.logger import logger
 from competitor_analysis_agent.auth import authenticate_JWT
 from competitor_analysis_agent.exception import CustomException
@@ -29,6 +30,9 @@ class ResearchInput(BaseModel):
     query: str
     user_id: str
 
+class OpenAIResponse(BaseModel):
+    response: str
+    report_data: str
 
 @app.get("/", response_class=responses.HTMLResponse)
 async def root(request: requests.Request):
@@ -36,14 +40,15 @@ async def root(request: requests.Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.post("/openai")
-async def openai(data: ResearchInput, request: requests.Request, user: str = Depends(authenticate_JWT)):
+@app.get("/openai", response_class=responses.HTMLResponse)
+# async def openai(data: ResearchInput, request: requests.Request, user: str = Depends(authenticate_JWT)):
+async def openai(query: str, user_id: str, request: requests.Request, user: str = Depends(authenticate_JWT)):
     """
     A description of the entire function, its parameters, and its return types.
     """
     try:
         # Create a top-level run
-        response = await chat_pipeline(data.query)
+        response = await chat_pipeline(query)
         if eval(response)['response'] is None:
             # return responses.JSONResponse(content={"message": "None"})
             return templates.TemplateResponse("result.html", {"request": request, "response": {"message": "None"}})
@@ -54,12 +59,13 @@ async def openai(data: ResearchInput, request: requests.Request, user: str = Dep
         directory = os.path.join(os.getcwd(), 'report')
         output_filename = os.path.join(directory, 'report.pdf')
         mongo_client['reports']['reports_files'].insert_one(
-            {'user_id': data.user_id, 'user_query': data.query, 'data': eval(response)['report_data']})
+            {'user_id': user_id, 'user_query': query, 'data': eval(response)['report_data']})
 
         with open(output_filename, "wb") as out_file:
             pisa.CreatePDF(eval(response)['report_data'], dest=out_file)
         
-        result_data = eval(response)
+        response_json = eval(response)
+        result_data = OpenAIResponse(**response_json)
 
         # return responses.JSONResponse(content={"message": f"Report pdf created at {output_filename}"})
         return templates.TemplateResponse("result.html", {"request": request, "result_data": result_data})

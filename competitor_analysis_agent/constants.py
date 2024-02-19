@@ -10,3 +10,6 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 # Import DB url
 MONGO_URI = os.environ.get("MONGO_URI")
+
+# JWT token
+API_KEY = os.environ.get("API-KEY")

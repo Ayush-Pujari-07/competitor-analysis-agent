@@ -7,11 +7,14 @@
 </head>
 <body>
     <h1>Competitive Analysis Agent</h1>
-    <form method="post" action="/openai">
+    <form method="get" action="/openai">
         <label for="query">Query:</label>
         <input type="text" id="query" name="query" required>
         <label for="user_id">User ID:</label>
         <input type="text" id="user_id" name="user_id" required>
+        <!-- Add an input field for the API key -->
+        <label for="api_key">API Key:</label>
+        <input type="text" id="api_key" name="Api-Key" required>
         <button type="submit">Submit</button>
     </form>
 </body>

@@ -20,16 +20,31 @@ def verify_token(api_key: str) -> None:
         raise TokenVerificationError("Unauthorized user") from e
 
 
+# def authenticate_JWT(request: Request) -> None:
+#     """
+#     Middleware function to authenticate API keys.
+#     """
+#     # Extract headers
+#     api_key = request.headers.get("Api-Key")
+
+#     # Check if headers are present
+#     if api_key is None:
+#         raise HTTPException(status_code=401, detail="API Key is missing")
+
+#     # Verify JWT token
+#     verify_token(api_key)
+
 def authenticate_JWT(request: Request) -> None:
     """
     Middleware function to authenticate API keys.
     """
-    # Extract headers
-    api_key = request.headers.get("Api-Key")
+    # Extract API key from query parameters
+    api_key = request.query_params.get("Api-Key")
+    print(api_key)
 
-    # Check if headers are present
+    # Check if API key is present
     if api_key is None:
         raise HTTPException(status_code=401, detail="API Key is missing")
-
+    
     # Verify JWT token
     verify_token(api_key)
