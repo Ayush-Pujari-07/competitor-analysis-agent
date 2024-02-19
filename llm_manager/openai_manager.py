@@ -1,6 +1,6 @@
 import sys
 
-from openai import OpenAI
+from openai import AsyncOpenAI
 from langsmith import wrappers
 
 from competitor_analysis_agent.logger import logger
@@ -22,20 +22,20 @@ class OpenAIManager:
         Initialize OpenAI API key and model.
         """
         if not self._initialized:
-            self.client = wrappers.wrap_openai(OpenAI(
+            self.client = wrappers.wrap_openai(AsyncOpenAI(
                 api_key=OPENAI_API_KEY,
                 max_retries=3
             ))
             self._initialized = True
         return self.client
-    
-    def generate_text(self, messages):
+
+    async def generate_text(self, messages):
         if not self._initialized:
             raise CustomException(
                 "OpenAI API key not initialized. Please initialize OpenAI API key using the `initialize_openai` method."
             )
 
-        return self.client.chat.completions.create(
+        return await self.client.chat.completions.create(
             model=GPT_MODEL,
             messages=messages,
             response_format={"type": "json_object"},

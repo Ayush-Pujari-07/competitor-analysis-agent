@@ -5,6 +5,7 @@ import tiktoken
 from competitor_analysis_agent.logger import logger
 from competitor_analysis_agent.exception import CustomException
 
+
 def token_count(string: str, encoding_name: str = "cl100k_base") -> int:
     """
     Returns the number of tokens in a text string.

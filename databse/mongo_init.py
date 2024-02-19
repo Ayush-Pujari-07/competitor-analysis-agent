@@ -26,7 +26,6 @@ class MongoClientManager:
 
 
 try:
-    mongo_client = MongoClientManager()
-    mongo_client.initialize_mongo()
+    mongo_client = MongoClientManager().initialize_mongo()
 except PyMongoError as e:
     logger.error(f"An error occurred: {CustomException(e,sys)}")
