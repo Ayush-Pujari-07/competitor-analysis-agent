@@ -6,13 +6,11 @@
     <title>Competitive Analysis Agent - Result</title>
 </head>
 <body>
-    <h1>Result</h1>
-    {% if result_data %}
-        <ul>
-            {% for key, value in result_data.items() %}
-                <li><strong>{{ key }}:</strong> {{ value }}</li>
-            {% endfor %}
-        </ul>
+    <h1>Competitor Analysis Report</h1>
+    
+    {% if result_data and result_data.response == "True" %}
+        <!-- Display HTML content if response is "True" -->
+        {{ result_data.report_data | safe }}
     {% elif error_message %}
         <p style="color: red;">{{ error_message }}</p>
     {% else %}
