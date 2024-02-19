@@ -57,7 +57,7 @@ async def openai(query: str, user_id: str, request: requests.Request, user: str 
         if not os.path.exists('report'):
             os.mkdir('report')
         directory = os.path.join(os.getcwd(), 'report')
-        output_filename = os.path.join(directory, 'report.pdf')
+        output_filename = os.path.join(directory, f'{query+'_'+user_id}.pdf')
         mongo_client['reports']['reports_files'].insert_one(
             {'user_id': user_id, 'user_query': query, 'data': eval(response)['report_data']})
 
