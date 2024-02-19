@@ -24,6 +24,7 @@ app = FastAPI(
 
 templates = Jinja2Templates(directory="templates")
 
+
 class ResearchInput(BaseModel):
     query: str
     user_id: str
@@ -35,7 +36,6 @@ async def root(request: requests.Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-
 @app.post("/openai")
 async def openai(data: ResearchInput, request: requests.Request, user: str = Depends(authenticate_JWT)):
     """
@@ -45,7 +45,8 @@ async def openai(data: ResearchInput, request: requests.Request, user: str = Dep
         # Create a top-level run
         response = await chat_pipeline(data.query)
         if eval(response)['response'] is None:
-            return responses.JSONResponse(content={"message": "None"})
+            # return responses.JSONResponse(content={"message": "None"})
+            return templates.TemplateResponse("result.html", {"request": request, "response": {"message": "None"}})
 
         # Create a directory
         if not os.path.exists('report'):
@@ -57,8 +58,14 @@ async def openai(data: ResearchInput, request: requests.Request, user: str = Dep
 
         with open(output_filename, "wb") as out_file:
             pisa.CreatePDF(eval(response)['report_data'], dest=out_file)
+        
+        result_data = {"key": "value", "another_key": "another_value"}
 
-        return responses.JSONResponse(content={"message": f"Report pdf created at {output_filename}"})
+        # return responses.JSONResponse(content={"message": f"Report pdf created at {output_filename}"})
+        return templates.TemplateResponse("result.html", {"request": request, "result_data": result_data})
+
 
     except Exception as e:
         logger.error(f"An error occurred: {CustomException(e,sys)}")
+        error_message = f"An error occurred: {str(e)}"
+        return templates.TemplateResponse("result.html", {"request": request, "error_message": error_message})
