@@ -2,11 +2,16 @@ import sys
 import chromadb
 
 from uuid import uuid4
+from langsmith import traceable
+from langchain.callbacks.tracers import LangChainTracer
 
 from competitor_analysis_agent.logger import logger
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.utils import generate_metadata
 from competitor_analysis_agent.exception import CustomException
+
+
+tracer = LangChainTracer(project_name="Competative-Analysis-Agent")
 
 class ChromadbManager:
     _instance = None
@@ -16,12 +21,12 @@ class ChromadbManager:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-
+    @traceable(name="Chromadb Manager Traceable")
     def initialize_chromnadb(self):
         if not self._initialized:
             self.client = chromadb.PersistentClient(path="./chroma")
             self._initialized = True
-
+    @traceable(name="Chromadb Manager Traceable")
     async def create_collection(self, complete_data: list, user_id: str):
         self.embedding_collection = self.client.get_or_create_collection(
             name=f"{user_id}_{uuid4().hex[:6]}",
@@ -35,7 +40,7 @@ class ChromadbManager:
             ids=ids,
             embeddings=embeddings
         )
-
+    @traceable(name="Chromadb Manager Traceable")
     async def query_collection(self, query: str):
         embedding = await openai_manager.client.embeddings.create(
             input=query,

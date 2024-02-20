@@ -21,12 +21,9 @@ async def chat_pipeline(query: str, user_id: str):
         # we can also use scraper to get the data if not using duckduckgo wrapper and if we are willing to pass the link manually.
         # ddg_search_output = web_search(query)
         search_output = GoogleSearch(query).search()
-        print(search_output)
         logger.info(f"search output: {search_output}")
-        complete_data = [{"title": result['title'], "content": scrape_text(result['link'])} for result in search_output]
-        
-        logger.info(f"Metadata: {complete_data}")
-
+        complete_data = [{"title": result['title'], "content": scrape_text(result['link'])[:20000]} for result in search_output]
+    
         await chromadb_client.create_collection(complete_data, user_id)
         context = await chromadb_client.query_collection(
             query=query

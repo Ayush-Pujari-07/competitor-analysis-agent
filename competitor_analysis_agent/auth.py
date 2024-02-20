@@ -40,7 +40,6 @@ def authenticate_JWT(request: Request) -> None:
     """
     # Extract API key from query parameters
     api_key = request.query_params.get("Api-Key")
-    print(api_key)
 
     # Check if API key is present
     if api_key is None:
