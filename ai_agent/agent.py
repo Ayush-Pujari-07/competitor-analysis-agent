@@ -1,6 +1,7 @@
 import sys
 import requests
 
+from databse.chromadb_init import chromadb_client
 from competitor_analysis_agent.logger import logger
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.exception import CustomException
@@ -9,7 +10,6 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv, find_dotenv
 
 from langsmith import traceable
-from langsmith.wrappers import wrap_openai
 from langchain.callbacks.tracers import LangChainTracer
 from langchain.utilities.duckduckgo_search import DuckDuckGoSearchAPIWrapper
 
@@ -18,7 +18,7 @@ load_dotenv(find_dotenv())
 
 tracer = LangChainTracer(project_name="Competative-Analysis-Agent")
 
-RESULTS_PER_QUESTION = 3
+RESULTS_PER_QUESTION = 5
 
 ddg_search = DuckDuckGoSearchAPIWrapper()
 
@@ -48,23 +48,28 @@ def scrape_text(url: str):
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        scrape_data = soup.get_text(
+        return soup.get_text(
             separator=" ",
             strip=True
         )
-
-        return scrape_data
     except Exception as e:
         logger.error(f"An error occurred: {CustomException(e,sys)}")
 
 
 @traceable(name="Chat Pipeline Traceable")
 async def chat_pipeline(query: str):
+    """
+    A function that represents a chat pipeline. It takes a query as input and performs a series of operations to generate a chat completion. The function is asynchronous and returns the completed chat message.
+    """
     try:
         # we can also use scraper to get the data if not using duckduckgo wrapper and if we are willing to pass the link manually
         # context = "".join([scrape_text(url)[:3500] for url in data])
-        context = web_search(query)
-
+        ddg_search_output = web_search(query)
+        metadata = [{"title": r['title'], "content": scrape_text(r['href'])} for r in ddg_search_output]
+        chromadb_client.create_collection(metadata)
+        context = chromadb_client.query_collection(
+            query=query
+        )
         # Prompt tempate
         template = f"\"As a researcher, your mission is to conduct a thorough analysis of the provided context below:\n\nContext: {context}\n" + \
             "\nGenerate an extensive competitor analysis report for the company, delivering valuable insights into its products and services. Ensure that the report is visually appealing with well-crafted tables and graphs formatted in HTML. The entire output should be neatly encapsulated within a JSON format structured as follows: \n\n'{\"response\": \"True\", \"report_data\": \"html report data\"}'\n\nMake the report not only informative but also visually appealing. Example: If the question is unclear, respond with 'None'.\"\n"
