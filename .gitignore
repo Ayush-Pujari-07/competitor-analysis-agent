@@ -26,6 +26,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 chroma
+report
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
