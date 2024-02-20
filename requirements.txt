@@ -12,3 +12,4 @@ pymongo
 pymongo[srv]
 xhtml2pdf
 python-jose
+chromadb
