@@ -1,6 +1,6 @@
 import sys
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 from langsmith import wrappers
 
 from competitor_analysis_agent.logger import logger

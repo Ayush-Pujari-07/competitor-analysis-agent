@@ -1,11 +1,12 @@
 import sys
 import chromadb
 
+from uuid import uuid4
+
 from competitor_analysis_agent.logger import logger
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.utils import generate_metadata
 from competitor_analysis_agent.exception import CustomException
-
 
 class ChromadbManager:
     _instance = None
@@ -21,29 +22,30 @@ class ChromadbManager:
             self.client = chromadb.PersistentClient(path="./chroma")
             self._initialized = True
 
-    def create_collection(self, metadata):
+    async def create_collection(self, complete_data: list, user_id: str):
         self.embedding_collection = self.client.get_or_create_collection(
-            name="openai_embading_test",
+            name=f"{user_id}_{uuid4().hex[:6]}",
         )
 
-        document, ids, metadatas, embeddings = generate_metadata(metadata)
+        document, ids, metadata, embeddings = await generate_metadata(complete_data)
 
         self.embedding_collection.add(
             documents=document,
-            metadatas=metadatas,
+            metadatas=metadata,
             ids=ids,
             embeddings=embeddings
         )
 
-    def query_collection(self, query):
+    async def query_collection(self, query: str):
+        embedding = await openai_manager.client.embeddings.create(
+            input=query,
+            model="text-embedding-3-small"
+        )
         result = self.embedding_collection.query(
-            query_embeddings=openai_manager.client.embeddings.create(
-                input=query,
-                model="text-embedding-3-small"
-            ),
+            query_embeddings=embedding.data[0].embedding,
             n_results=1
         )
-
+        logger.info(f"Query: {query}, Result: {result}")
         return result['documents'][0][0]
 
 
