@@ -3,8 +3,9 @@ import sys
 
 from xhtml2pdf import pisa
 from pydantic import BaseModel
-from fastapi import requests, FastAPI, responses, Depends, Form
+from datetime import datetime
 from fastapi.templating import Jinja2Templates
+from fastapi import requests, FastAPI, responses, Depends, Form
 
 from ai_agent.agent import chat_pipeline
 from databse.mongo_init import mongo_client
@@ -48,7 +49,8 @@ async def openai(query: str, user_id: str, request: requests.Request, user: str 
     """
     try:
         # Create a top-level run
-        response = await chat_pipeline(query)
+        response = await chat_pipeline(query, user_id)
+        logger.info(f"Response: {response}")
         if eval(response)['response'] is None:
             # return responses.JSONResponse(content={"message": "None"})
             return templates.TemplateResponse("result.html", {"request": request, "response": {"message": "None"}})
@@ -57,10 +59,11 @@ async def openai(query: str, user_id: str, request: requests.Request, user: str 
         if not os.path.exists('report'):
             os.mkdir('report')
         directory = os.path.join(os.getcwd(), 'report')
-        output_filename = os.path.join(directory, f'{query+'_'+user_id}.pdf')
+        output_filename = os.path.join(directory, f'{query}_{user_id}.pdf')
         mongo_client['reports']['reports_files'].insert_one(
-            {'user_id': user_id, 'user_query': query, 'data': eval(response)['report_data']})
+            {'created_at': datetime.now().utcnow(), 'user_id': user_id, 'user_query': query, 'data': eval(response)['report_data']})
 
+        # Save as PDF
         with open(output_filename, "wb") as out_file:
             pisa.CreatePDF(eval(response)['report_data'], dest=out_file)
         
