@@ -38,9 +38,10 @@ class OpenAIManager:
         return await self.client.chat.completions.create(
             model=GPT_MODEL,
             messages=messages,
+            seed=123,
             response_format={"type": "json_object"},
-            temperature=1.0,
-            top_p=1
+            temperature=0.6,
+            max_tokens=4000
         )
 
 

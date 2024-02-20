@@ -38,7 +38,7 @@ async def chat_pipeline(query: str, user_id: str):
 
         messages = [
             {"role": "system", "content": template},
-            {"role": "user", "content": f"Question: {query}"}
+            {"role": "user", "content": f"Provide me a detailed competitor analysis report for {query} in beautified HTML format.."}
         ]
 
         logger.info(f"Messages: {messages}")
