@@ -1,7 +1,10 @@
 import gc
+import re
 import sys
 import tiktoken
 import requests
+
+from nltk.corpus import stopwords
 
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.logger import logger
@@ -86,5 +89,26 @@ def scrape_text(url: str):
             separator=" ",
             strip=True
         )
+    except Exception as e:
+        logger.error(f"An error occurred: {CustomException(e,sys)}")
+
+
+def text_cleaner(text: str):
+    """
+    A function to clean the data by removing special characters and stop words.
+    """
+    try:
+        # Remove special characters using regex
+        cleaned_text = re.sub(r'[^a-zA-Z\s]', '', text)
+
+        # Remove stop words using nltk
+        stop_words = set(stopwords.words('english'))
+        words = cleaned_text.split()
+        filtered_words = [word for word in words if word.lower() not in stop_words]
+
+        # Join the filtered words to form cleaned text
+        cleaned_text = ' '.join(filtered_words)
+
+        return cleaned_text
     except Exception as e:
         logger.error(f"An error occurred: {CustomException(e,sys)}")

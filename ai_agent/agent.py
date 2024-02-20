@@ -4,7 +4,7 @@ from databse.chromadb_init import chromadb_client
 from competitor_analysis_agent.logger import logger
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.exception import CustomException
-from competitor_analysis_agent.utils import scrape_text
+from competitor_analysis_agent.utils import scrape_text, text_cleaner
 from competitor_analysis_agent.google_search.google import GoogleSearch
 
 from langsmith import traceable
@@ -22,14 +22,14 @@ async def chat_pipeline(query: str, user_id: str):
         # ddg_search_output = web_search(query)
         search_output = GoogleSearch(query).search()
         logger.info(f"search output: {search_output}")
-        complete_data = [{"title": result['title'], "content": scrape_text(result['link'])[:20000]} for result in search_output]
+        complete_data = [{"title": result['title'], "content": text_cleaner(scrape_text(result['link']))[:20000]} for result in search_output]
     
         await chromadb_client.create_collection(complete_data, user_id)
         context = await chromadb_client.query_collection(
             query=query
         )
 
-        # Prompt tempate
+        # Prompt template
         template = f"\"As a researcher, your mission is to conduct a thorough analysis of the provided context below:\n\nContext: {context}\n" + \
             "\nGenerate an extensive competitor analysis report for the company, delivering valuable insights into its products and services. Ensure that the report is visually appealing with well-crafted tables and graphs formatted in HTML. The entire output should be neatly encapsulated within a JSON format structured as follows: \n\n'{\"response\": \"True\", \"report_data\": \"html report data\"}'\n\nMake the report not only informative but also visually appealing. Example: If the question is unclear, respond with 'None'.\"\n"
 
