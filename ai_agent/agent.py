@@ -28,7 +28,7 @@ def web_search(query: str, num_results: int = RESULTS_PER_QUESTION):
     Perform a web search using the specified query and return a list of links from the search results.
     """
     try:
-        results = ddg_search.run(query)
+        results = ddg_search.results(query, max_results=num_results)
         return results
     except Exception as e:
         logger.error(f"An error occurred: {CustomException(e,sys)}")
