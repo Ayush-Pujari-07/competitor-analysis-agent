@@ -91,23 +91,6 @@ def text_cleaner(text: str):
     except Exception as e:
         logger.error(f"An error occurred: {CustomException(e,sys)}")
 
-# def get_metadata(data: str) -> list:
-#     """
-#     Generate metadata from the input data and return a list of metadata items. 
-#     """
-#     meta_data = []
-#     for i in range(len(data)):
-#         if data[i]['content'] != "None":
-#             for index, content in enumerate(text_splitter(data[i]['content'])):
-#                 meta_data.append(
-#                     {
-#                         "title": f"{data[i]['title']}_{index+1}",
-#                         "content": content,
-#                     }
-#                 )
-
-#     return meta_data
-
 def process_search_results(search_results):
     """        
     Process search results and generate metadata for each result.
@@ -128,5 +111,5 @@ def process_search_results(search_results):
 
 
 def text_splitter(text):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, separators=". ", chunk_overlap=20)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=3000, separators=". ", chunk_overlap=20)
     return text_splitter.split_text(text)
