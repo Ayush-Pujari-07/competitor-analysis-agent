@@ -12,6 +12,7 @@ from langchain.callbacks.tracers import LangChainTracer
 
 tracer = LangChainTracer(project_name="Competative-Analysis-Agent")
 
+
 @traceable(name="Chat Pipeline Traceable")
 async def chat_pipeline(query: str, user_id: str):
     """
@@ -22,8 +23,9 @@ async def chat_pipeline(query: str, user_id: str):
         # ddg_search_output = web_search(query)
         search_output = GoogleSearch(query).search()
         logger.info(f"search output: {search_output}")
-        complete_data = [{"title": result['title'], "content": text_cleaner(scrape_text(result['link']))[:20000]} for result in search_output]
-    
+        complete_data = [{"title": result['title'], "content": text_cleaner(
+            scrape_text(result['link']))[:20000]} for result in search_output]
+        logger.info(f"complete data: {complete_data}")
         await chromadb_client.create_collection(complete_data, user_id)
         context = await chromadb_client.query_collection(
             query=query
@@ -31,7 +33,7 @@ async def chat_pipeline(query: str, user_id: str):
 
         # Prompt template
         template = f"\"As a researcher, your mission is to conduct a thorough analysis of the provided context below:\n\nContext: {context}\n" + \
-            "\nGenerate an extensive competitor analysis report for the company, delivering valuable insights into its products and services. Ensure that the report is visually appealing with well-crafted tables and graphs formatted in HTML. The entire output should be neatly encapsulated within a JSON format structured as follows: \n\n'{\"response\": \"True\", \"report_data\": \"html report data\"}'\n\nMake the report not only informative but also visually appealing. Example: If the question is unclear, respond with 'None'.\"\n"
+        "\nGenerate an extensive competitor analysis report for the company, delivering valuable insights into its products and services. Ensure that the report is visually appealing with well-crafted tables and graphs formatted in HTML. The entire output should be neatly encapsulated within a JSON format structured as follows: \n\n'{\"response\": \"True/False\", \"report_data\": \"html report/None\"}'\n\nMake the report not only informative but also visually appealing."
 
         messages = [
             {"role": "system", "content": template},
