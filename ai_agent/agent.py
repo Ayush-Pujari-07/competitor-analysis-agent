@@ -4,7 +4,7 @@ from databse.chromadb_init import chromadb_client
 from competitor_analysis_agent.logger import logger
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.exception import CustomException
-from competitor_analysis_agent.utils import scrape_text, text_cleaner
+from competitor_analysis_agent.utils import process_search_results, text_cleaner
 from competitor_analysis_agent.google_search.google import GoogleSearch
 
 from langsmith import traceable
@@ -22,18 +22,24 @@ async def chat_pipeline(query: str, user_id: str):
         # we can also use scraper to get the data if not using duckduckgo wrapper and if we are willing to pass the link manually.
         # ddg_search_output = web_search(query)
         search_output = GoogleSearch(query).search()
+        
         logger.info(f"search output: {search_output}")
-        complete_data = [{"title": result['title'], "content": text_cleaner(
-            scrape_text(result['link']))[:20000]} for result in search_output]
-        logger.info(f"complete data: {complete_data}")
+        
+        # data = [{"title": result['title'], "content": text_cleaner(result['content'])} for result in search_output]
+        
+        complete_data = process_search_results(search_output)
+
+        # logger.info(f"complete data: {complete_data}")
+        
         await chromadb_client.create_collection(complete_data, user_id)
+        
         context = await chromadb_client.query_collection(
             query=query
         )
 
         # Prompt template
         template = f"\"As a researcher, your mission is to conduct a thorough analysis of the provided context below:\n\nContext: {context}\n" + \
-        "\nGenerate an extensive competitor analysis report for the company, delivering valuable insights into its products and services. Ensure that the report is visually appealing with well-crafted tables and graphs formatted in HTML. The entire output should be neatly encapsulated within a JSON format structured as follows: \n\n'{\"response\": \"True/False\", \"report_data\": \"html report/None\"}'\n\nMake the report not only informative but also visually appealing."
+        "\nGenerate an extensive competitor analysis report for the company, delivering valuable insights into its products and services. Ensure that the report is visually appealing with well-crafted tables and detail pointers for strategy building. The report should be formatted in HTML. The entire output should be neatly encapsulated within a JSON format structured as follows: \n\n'{\"response\": \"True/False\", \"report_data\": \"html report/None\"}'\n\nMake the report not only informative but also visually appealing."
 
         messages = [
             {"role": "system", "content": template},
