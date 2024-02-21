@@ -13,6 +13,7 @@ from competitor_analysis_agent.exception import CustomException
 
 tracer = LangChainTracer(project_name="Competative-Analysis-Agent")
 
+
 class ChromadbManager:
     _instance = None
 
@@ -21,11 +22,13 @@ class ChromadbManager:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
+
     @traceable(name="Chromadb Manager Traceable")
     def initialize_chromnadb(self):
         if not self._initialized:
             self.client = chromadb.PersistentClient(path="./chroma")
             self._initialized = True
+
     @traceable(name="Chromadb Manager Traceable")
     async def create_collection(self, complete_data: list, user_id: str):
         self.embedding_collection = self.client.get_or_create_collection(
@@ -33,13 +36,15 @@ class ChromadbManager:
         )
 
         document, ids, metadata, embeddings = await generate_metadata(complete_data)
-
+        # logger.info(
+        #     f"document: {document}, ids: {ids}, metadata: {metadata}, embeddings: {embeddings}")
         self.embedding_collection.add(
             documents=document,
             metadatas=metadata,
             ids=ids,
             embeddings=embeddings
         )
+
     @traceable(name="Chromadb Manager Traceable")
     async def query_collection(self, query: str):
         embedding = await openai_manager.client.embeddings.create(
