@@ -4,6 +4,7 @@ import json
 import requests
 
 from competitor_analysis_agent.logger import logger
+from competitor_analysis_agent.utils import scrape_text
 
 from dotenv import find_dotenv, load_dotenv
 
@@ -32,7 +33,7 @@ class GoogleSearch:
             raise Exception("Google CX key not found. Set the GOOGLE_CX_KEY environment variable."
                             "You can get your CX key from https://developers.google.com/custom-search/v1/introduction")
 
-    def search(self, max_retries: int=7):
+    def search(self, max_retries: int=7)-> list:
         """
         A function to search using the Google Custom Search API.
 
@@ -66,7 +67,7 @@ class GoogleSearch:
             search_results.append({
                 "title": result["title"],
                 "link": result["link"],
-                "snippet": result["snippet"]
+                "content": scrape_text(result["link"])
             })
         logger.info(f"search: {search_results}")
         
