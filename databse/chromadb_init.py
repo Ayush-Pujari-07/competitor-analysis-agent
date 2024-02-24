@@ -30,7 +30,11 @@ class ChromadbManager:
             self._initialized = True
 
     @traceable(name="Chromadb Manager Traceable")
-    async def create_collection(self, complete_data: list, user_id: str):
+    async def create_collection(
+        self,
+        complete_data: list,
+        user_id: str
+    ):
         self.embedding_collection = self.client.get_or_create_collection(
             name=f"{user_id}_{uuid4().hex[:6]}",
         )
@@ -46,14 +50,17 @@ class ChromadbManager:
         )
 
     @traceable(name="Chromadb Manager Traceable")
-    async def query_collection(self, query: str):
+    async def query_collection(
+        self,
+        query: str
+    ):
         embedding = await openai_manager.client.embeddings.create(
             input=query,
             model="text-embedding-3-small"
         )
         result = self.embedding_collection.query(
             query_embeddings=embedding.data[0].embedding,
-            n_results=1
+            n_results=5
         )
         logger.info(f"Query: {query}, Result: {result}")
         return result['documents'][0][0]
