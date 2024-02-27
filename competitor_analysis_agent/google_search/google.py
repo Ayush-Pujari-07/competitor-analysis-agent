@@ -45,6 +45,7 @@ class GoogleSearch:
         """
         logger.info(f"Searched Query; {self.query}")
         URL = f"https://www.googleapis.com/customsearch/v1?key={self.api_key}&cx={self.cx_key}&q={self.query}"
+        
         response = requests.get(URL)
 
         if response is None:

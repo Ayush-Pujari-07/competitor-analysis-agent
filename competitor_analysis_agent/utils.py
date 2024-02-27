@@ -5,6 +5,8 @@ import tiktoken
 import requests
 
 from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+
 
 from llm_manager.openai_manager import openai_manager
 from competitor_analysis_agent.logger import logger
@@ -61,7 +63,7 @@ def scrape_text(url: str):
     """
     try:
         response = requests.get(url=url)
-        if response.status_code == 200:
+        if response.status_code == 200 and not url.endswith('.pdf'):
             # return f"Failed to retrieve text from the website: {response.status_code}"
             return BeautifulSoup(response.text, 'html.parser').get_text(separator=" ", strip=True)
 
@@ -71,25 +73,54 @@ def scrape_text(url: str):
         logger.error(f"An error occurred: {CustomException(e,sys)}")
 
 
+# def text_cleaner(text: str):
+#     """
+#     A function to clean the data by removing special characters and stop words.
+#     """
+#     try:
+#         # Remove special characters using regex
+#         cleaned_text = re.sub(r'[^a-zA-Z\s]', '', text)
+
+#         # Remove stop words using nltk
+#         stop_words = set(stopwords.words('english'))
+#         words = cleaned_text.split()
+#         filtered_words = [word for word in words if word.lower() not in stop_words]
+
+#         # Join the filtered words to form cleaned text
+#         cleaned_text = ' '.join(filtered_words)
+
+#         return cleaned_text
+#     except Exception as e:
+#         logger.error(f"An error occurred: {CustomException(e,sys)}")
+
+
 def text_cleaner(text: str):
     """
-    A function to clean the data by removing special characters and stop words.
+    A function to clean the data by removing special characters, stop words, and perform lemmatization.
     """
     try:
         # Remove special characters using regex
         cleaned_text = re.sub(r'[^a-zA-Z\s]', '', text)
+
+        # Convert to lowercase
+        cleaned_text = cleaned_text.lower()
 
         # Remove stop words using nltk
         stop_words = set(stopwords.words('english'))
         words = cleaned_text.split()
         filtered_words = [word for word in words if word.lower() not in stop_words]
 
-        # Join the filtered words to form cleaned text
+        # Lemmatization
+        lemmatizer = WordNetLemmatizer()
+        filtered_words = [lemmatizer.lemmatize(word) for word in filtered_words]
+
+        # Remove extra whitespaces
         cleaned_text = ' '.join(filtered_words)
 
         return cleaned_text
     except Exception as e:
-        logger.error(f"An error occurred: {CustomException(e,sys)}")
+        logger.error(f"An error occurred: {CustomException(e, sys)}")
+
 
 def process_search_results(search_results):
     """        
